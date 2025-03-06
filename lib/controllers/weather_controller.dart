@@ -1,33 +1,53 @@
-// lib/controllers/weather_controller.dart
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../models/weather.dart';
-import 'dart:math';
 
 class WeatherController extends GetxController {
-  var weather = Weather().obs;
-  var isLoading = false.obs;
+  var cities = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"].obs;
+  var selectedWeather = {}.obs;
 
-  Future<void> fetchWeather(String city) async {
-    isLoading.value = true;
-    await Future.delayed(Duration(seconds: 2)); // Simula un retraso de red
-
-    try {
-      // Simulamos datos de clima aleatorios
-      var random = Random();
-      weather.value = Weather(
-        city: city,
-        temperature: 15 + random.nextInt(15) + random.nextDouble(), // Entre 15°C y 30°C
-        condition: _getRandomCondition(),
-      );
-    } catch (e) {
-      Get.snackbar('Error', 'No se pudo obtener el clima');
-    }
-
-    isLoading.value = false;
+  void setWeather(String city, String condition) {
+    selectedWeather[city] = condition;
   }
+}
 
-  String _getRandomCondition() {
-    List<String> conditions = ['Soleado', 'Nublado', 'Lluvioso', 'Tormentoso', 'Nevado'];
-    return conditions[Random().nextInt(conditions.length)];
+class HomeScreen extends StatelessWidget {
+  final WeatherController weatherController = Get.put(WeatherController());
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Clima')),
+      body: Column(
+        children: [
+          Expanded(
+            child: Obx(() => ListView(
+                  children: weatherController.cities
+                      .map((city) => ListTile(
+                            title: Text(city),
+                            trailing: DropdownButton<String>(
+                              value: weatherController.selectedWeather[city],
+                              items: ["Soleado", "Lluvioso"]
+                                  .map((weather) => DropdownMenuItem(
+                                        value: weather,
+                                        child: Text(weather),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  weatherController.setWeather(city, value);
+                                }
+                              },
+                            ),
+                          ))
+                      .toList(),
+                )),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+void main() {
+  runApp(GetMaterialApp(home: HomeScreen()));
 }

@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/weather_controller.dart';
+
+class WeatherController extends GetxController {
+  var city = ''.obs;
+  var condition = ''.obs;
+
+  void setWeather(String cityName, String weatherCondition) {
+    city.value = cityName;
+    condition.value = weatherCondition;
+  }
+}
 
 class HomeScreen extends StatelessWidget {
   final WeatherController weatherController = Get.put(WeatherController());
@@ -24,24 +33,39 @@ class HomeScreen extends StatelessWidget {
             SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                weatherController.fetchWeather(cityController.text);
+                weatherController.setWeather(cityController.text, "Soleado");
               },
-              child: Text('Get Weather'),
+              child: Text('Confirm City'),
             ),
             SizedBox(height: 20),
-            Obx(() => weatherController.isLoading.value
-                ? CircularProgressIndicator()
+            Obx(() => weatherController.city.value.isEmpty
+                ? Text("No city selected")
                 : Column(
                     children: [
                       Text(
-                        weatherController.weather.value.city,
+                        weatherController.city.value,
                         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       ),
-                      Text(
-                        '${weatherController.weather.value.temperature}°C',
-                        style: TextStyle(fontSize: 22),
+                      DropdownButton<String>(
+                        value: weatherController.condition.value.isEmpty
+                            ? null
+                            : weatherController.condition.value,
+                        hint: Text("Select Weather"),
+                        items: ["Soleado", "Lluvioso"].map((String weather) {
+                          return DropdownMenuItem<String>(
+                            value: weather,
+                            child: Text(weather),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            weatherController.setWeather(
+                                weatherController.city.value, value);
+                          }
+                        },
                       ),
-                      Text(weatherController.weather.value.condition),
+                      if (weatherController.condition.value.isNotEmpty)
+                        Text("Clima: ${weatherController.condition.value}"),
                     ],
                   )),
           ],
@@ -49,4 +73,8 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+void main() {
+  runApp(GetMaterialApp(home: HomeScreen()));
 }
