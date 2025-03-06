@@ -3,10 +3,14 @@ import 'package:get/get.dart';
 
 class WeatherController extends GetxController {
   var cities = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"].obs;
-  var selectedWeather = {}.obs;
+  var weatherConditions = <String>[].obs;
 
-  void setWeather(String city, String condition) {
-    selectedWeather[city] = condition;
+  WeatherController() {
+    weatherConditions.assignAll(List.generate(cities.length, (index) => "Soleado"));
+  }
+
+  void setWeather(int index, String condition) {
+    weatherConditions[index] = condition;
   }
 }
 
@@ -20,26 +24,39 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
           Expanded(
-            child: Obx(() => ListView(
-                  children: weatherController.cities
-                      .map((city) => ListTile(
-                            title: Text(city),
-                            trailing: DropdownButton<String>(
-                              value: weatherController.selectedWeather[city],
-                              items: ["Soleado", "Lluvioso"]
-                                  .map((weather) => DropdownMenuItem(
-                                        value: weather,
-                                        child: Text(weather),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  weatherController.setWeather(city, value);
-                                }
-                              },
-                            ),
-                          ))
-                      .toList(),
+            child: Obx(() => ListView.builder(
+                  itemCount: weatherController.cities.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(weatherController.cities[index]),
+                      trailing: DropdownButton<String>(
+                        value: weatherController.weatherConditions[index],
+                        items: ["Soleado", "Lluvioso"]
+                            .map((weather) => DropdownMenuItem(
+                                  value: weather,
+                                  child: Text(weather),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            weatherController.setWeather(index, value);
+                          }
+                        },
+                      ),
+                    );
+                  },
+                )),
+          ),
+          Divider(),
+          Text("Resumen del Clima", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Obx(() => ListView.builder(
+                  itemCount: weatherController.cities.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text("${weatherController.cities[index]}: ${weatherController.weatherConditions[index]}"),
+                    );
+                  },
                 )),
           ),
         ],
